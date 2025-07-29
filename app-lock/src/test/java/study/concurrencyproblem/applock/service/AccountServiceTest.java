@@ -71,7 +71,7 @@ class AccountServiceTest {
     @Test
     @DisplayName("🚨 잔고가 10000원인 계좌에서 두 스레드가 동시에 5000원을 인출")
     void twoThreadWithdraw() throws InterruptedException {
-        // Given: 초기 잔액 1000원
+        // Given: 초기 잔액 10000원
         int initialBalance = accountService.getBalance(testAccountId);
         assertEquals(10000, initialBalance);
 
