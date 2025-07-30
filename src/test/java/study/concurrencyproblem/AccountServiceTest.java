@@ -1,4 +1,4 @@
-package study.concurrencyproblem.applock.service;
+package study.concurrencyproblem;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,7 +17,8 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import study.concurrencyproblem.core.domain.Account;
+import study.concurrencyproblem.domain.Account;
+import study.concurrencyproblem.service.AccountService;
 
 @SpringBootTest
 @Testcontainers

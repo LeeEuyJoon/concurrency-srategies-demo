@@ -1,6 +1,6 @@
-package study.concurrencyproblem.core.service;
+package study.concurrencyproblem.service;
 
-import study.concurrencyproblem.core.domain.Account;
+import study.concurrencyproblem.domain.Account;
 
 /**
  * 동시성 실험을 위한 공통 계좌 서비스 인터페이스

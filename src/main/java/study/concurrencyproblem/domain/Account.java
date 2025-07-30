@@ -1,4 +1,4 @@
-package study.concurrencyproblem.core.domain;
+package study.concurrencyproblem.domain;
 
 import jakarta.persistence.*;
 

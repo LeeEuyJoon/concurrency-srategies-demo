@@ -39,3 +39,6 @@ out/
 
 ### Cursor ###
 .cursorrules
+
+### application.yml ###
+application.yml

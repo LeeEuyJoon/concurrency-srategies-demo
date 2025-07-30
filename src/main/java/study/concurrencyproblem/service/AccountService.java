@@ -1,11 +1,11 @@
-package study.concurrencyproblem.applock.service;
+package study.concurrencyproblem.service;
+
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import study.concurrencyproblem.core.domain.Account;
-import study.concurrencyproblem.core.service.AccountServiceInterface;
-import study.concurrencyproblem.applock.repository.AccountRepository;
+import study.concurrencyproblem.domain.Account;
+import study.concurrencyproblem.repository.AccountRepository;
 
 @Service
 @Transactional
