@@ -119,7 +119,7 @@ class AccountServiceTest {
         // ExecutorService 종료
         executor.shutdown();
 
-        // Then: 최종 잔액이 0원이 아닌 500원
+        // Then: 최종 잔액이 0원이 아닌 5000원
         int finalBalance = accountService.getBalance(testAccountId);
         System.out.printf("초기 잔액=%d, 최종 잔액=%d%n", initialBalance, finalBalance);
 
