@@ -7,6 +7,7 @@ import study.concurrencyproblem.strategy.Strategy;
 
 @Component
 public class StampedLockStrategy implements LockStrategy {
+
 	@Override
 	public Integer getBalance(Long id) {
 		// TODO
