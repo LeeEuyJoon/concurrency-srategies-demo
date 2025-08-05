@@ -11,4 +11,6 @@ public interface LockStrategy {
     // 입금
     Integer deposit(Long id, Integer amount);
 
+    // 락 타입 반환
+    Strategy getStrategyType();
 }
