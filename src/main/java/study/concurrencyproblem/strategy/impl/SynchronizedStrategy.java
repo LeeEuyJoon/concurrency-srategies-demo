@@ -20,9 +20,4 @@ public class SynchronizedStrategy implements LockStrategy {
 	public Integer deposit(Long id, Integer amount) {
 		return 0;
 	}
-
-	@Override
-	public LockStrategy getStrategyType() {
-		return null;
-	}
 }
