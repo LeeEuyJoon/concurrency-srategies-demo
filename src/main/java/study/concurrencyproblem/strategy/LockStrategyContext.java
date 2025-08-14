@@ -1,6 +1,7 @@
 package study.concurrencyproblem.strategy;
 
 import org.springframework.stereotype.Component;
+import study.experiment.ExperimentType;
 
 @Component
 public class LockStrategyContext {
@@ -10,14 +11,14 @@ public class LockStrategyContext {
 		this.strategy = strategy;
 	}
 
-	public Integer getBalance(Long id) {
-		return strategy.getBalance(id);
+	public Integer getBalance(Long id, ExperimentType experimentType) {
+		return strategy.getBalance(id, experimentType);
 	}
-	public Integer withdraw(Long id, Integer amount) {
-		return strategy.withdraw(id, amount);
+	public Integer withdraw(Long id, Integer amount, ExperimentType experimentType) {
+		return strategy.withdraw(id, amount, experimentType);
 	}
-	public Integer deposit(Long id, Integer amount) {
-		return strategy.deposit(id, amount);
+	public Integer deposit(Long id, Integer amount, ExperimentType experimentType) {
+		return strategy.deposit(id, amount, experimentType);
 	}
 }
 

@@ -1,0 +1,52 @@
+{
+  "uid": "concurrency-lock-wait",
+  "title": "Concurrency • Lock Wait",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Average lock wait (by strategy, ep)",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "(sum by (strategy, ep) (rate(concurrency_lock_wait_seconds_sum[1m]))) / (sum by (strategy, ep) (rate(concurrency_lock_wait_seconds_count[1m])))",
+          "legendFormat": "{{strategy}} · {{ep}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "p90 lock wait (by strategy, ep)",
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.90, sum(rate(concurrency_lock_wait_seconds_bucket[1m])) by (le, strategy, ep))",
+          "legendFormat": "{{strategy}} · {{ep}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "p99 lock wait (by strategy, ep)",
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(concurrency_lock_wait_seconds_bucket[1m])) by (le, strategy, ep))",
+          "legendFormat": "{{strategy}} · {{ep}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
+    }
+  ]
+}

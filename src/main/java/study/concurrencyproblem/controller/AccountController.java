@@ -33,7 +33,7 @@ public class AccountController {
         LockStrategy selectedStrategy = lockStrategyFactory.create(strategy);
         lockStrategyContext.setStrategy(selectedStrategy);
 
-        return lockStrategyContext.getBalance(id);
+        return lockStrategyContext.getBalance(id, experimentType);
     }
     
     // 출금
@@ -43,7 +43,7 @@ public class AccountController {
         LockStrategy selectedStrategy = lockStrategyFactory.create(request.getStrategy());
         lockStrategyContext.setStrategy(selectedStrategy);
 
-        return lockStrategyContext.withdraw(id, request.getAmount());
+        return lockStrategyContext.withdraw(id, request.getAmount(), request.getExperimentType());
     }
     
     // 입금  
@@ -53,6 +53,6 @@ public class AccountController {
         LockStrategy selectedStrategy = lockStrategyFactory.create(request.getStrategy());
         lockStrategyContext.setStrategy(selectedStrategy);
 
-        return lockStrategyContext.deposit(id, request.getAmount());
+        return lockStrategyContext.deposit(id, request.getAmount(), request.getExperimentType());
     }
 }

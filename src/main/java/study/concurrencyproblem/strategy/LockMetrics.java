@@ -21,6 +21,7 @@ public class LockMetrics {
 			.description("Time spent waiting to acquire lock")
 			.tag("strategy", strategy.name())
 			.tag("ep", ep.name())
+			.publishPercentileHistogram(true)
 			.register(registry)
 			.record(nanos, TimeUnit.NANOSECONDS);
 
