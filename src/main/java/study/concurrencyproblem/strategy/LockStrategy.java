@@ -1,16 +1,14 @@
 package study.concurrencyproblem.strategy;
 
+import study.experiment.ExperimentType;
+
 public interface LockStrategy {
     
-    // 잔액 조회
-    Integer getBalance(Long id);
+    Integer getBalance(Long id, ExperimentType experimentType);
 
-    // 출금
-    Integer withdraw(Long id, Integer amount);
+    Integer withdraw(Long id, Integer amount, ExperimentType experimentType);
 
-    // 입금
-    Integer deposit(Long id, Integer amount);
+    Integer deposit(Long id, Integer amount, ExperimentType experimentType);
 
-    // 락 타입 반환
     Strategy getStrategyType();
 }

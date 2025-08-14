@@ -1,14 +1,15 @@
 package study.concurrencyproblem.dto;
 
 import study.concurrencyproblem.strategy.Strategy;
+import study.experiment.ExperimentType;
 
 public class TransactionRequest {
     private Integer amount;
     private Strategy strategy = Strategy.NO_LOCK;
-    
-    // 기본 생성자
+    private ExperimentType experimentType = ExperimentType.WITHDRAW_ONLY;
+
     public TransactionRequest() {}
-    
+
     public TransactionRequest(Integer amount) {
         this.amount = amount;
     }
@@ -32,5 +33,13 @@ public class TransactionRequest {
     
     public void setStrategy(Strategy strategy) {
         this.strategy = strategy;
+    }
+
+    public ExperimentType getExperimentType() {
+        return experimentType;
+    }
+
+    public void setExperimentType(ExperimentType experimentType) {
+        this.experimentType = experimentType;
     }
 }

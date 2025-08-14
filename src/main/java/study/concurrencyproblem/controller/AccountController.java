@@ -9,6 +9,7 @@ import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.LockStrategyContext;
 import study.concurrencyproblem.strategy.LockStrategyFactory;
 import study.concurrencyproblem.strategy.Strategy;
+import study.experiment.ExperimentType;
 
 @RestController
 @RequestMapping("/accounts")
@@ -26,8 +27,9 @@ public class AccountController {
 
     // 잔액 조회
     @GetMapping("/{id}/balance")
-    public Integer getBalance(@PathVariable Long id, 
-                             @RequestParam(defaultValue = "NO_LOCK") Strategy strategy) {
+    public Integer getBalance(@PathVariable Long id,
+                                @RequestParam(defaultValue = "NO_LOCK") Strategy strategy,
+                                @RequestParam(defaultValue = "WITHDRAW_ONLY") ExperimentType experimentType) {
         LockStrategy selectedStrategy = lockStrategyFactory.create(strategy);
         lockStrategyContext.setStrategy(selectedStrategy);
 
