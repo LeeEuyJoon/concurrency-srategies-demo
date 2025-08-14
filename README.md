@@ -10,7 +10,7 @@
 ### 기술 스택
 - Java17
 - Spring Boot
-- Docker Compose - 분산 네트워크 구축 
+- Docker Compose - 다중 컨테이너 환경 구성
 - Nginx - 로드밸런싱
 - Micrometer - 메트릭 계측
 - Prometheus - 메트릭 수집
