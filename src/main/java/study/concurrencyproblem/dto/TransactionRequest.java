@@ -1,7 +1,7 @@
 package study.concurrencyproblem.dto;
 
 import study.concurrencyproblem.strategy.Strategy;
-import study.experiment.ExperimentType;
+import study.concurrencyproblem.experiment.ExperimentType;
 
 public class TransactionRequest {
     private Integer amount;

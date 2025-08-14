@@ -1,6 +1,6 @@
 package study.concurrencyproblem.strategy;
 
-import study.experiment.ExperimentType;
+import study.concurrencyproblem.experiment.ExperimentType;
 
 public interface LockStrategy {
     

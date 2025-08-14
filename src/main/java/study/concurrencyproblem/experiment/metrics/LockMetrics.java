@@ -1,4 +1,4 @@
-package study.concurrencyproblem.strategy;
+package study.concurrencyproblem.experiment.metrics;
 
 import java.util.concurrent.TimeUnit;
 
@@ -6,7 +6,8 @@ import org.springframework.stereotype.Component;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import study.experiment.ExperimentType;
+import study.concurrencyproblem.strategy.Strategy;
+import study.concurrencyproblem.experiment.ExperimentType;
 
 @Component
 public class LockMetrics {

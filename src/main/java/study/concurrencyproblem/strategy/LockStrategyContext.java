@@ -1,7 +1,7 @@
 package study.concurrencyproblem.strategy;
 
 import org.springframework.stereotype.Component;
-import study.experiment.ExperimentType;
+import study.concurrencyproblem.experiment.ExperimentType;
 
 @Component
 public class LockStrategyContext {

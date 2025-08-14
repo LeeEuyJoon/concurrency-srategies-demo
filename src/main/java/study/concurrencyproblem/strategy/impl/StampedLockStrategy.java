@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
-import study.experiment.ExperimentType;
+import study.concurrencyproblem.experiment.ExperimentType;
 
 @Component
 public class StampedLockStrategy implements LockStrategy {

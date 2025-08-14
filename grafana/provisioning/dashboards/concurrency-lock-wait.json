@@ -14,7 +14,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "(sum by (strategy, ep) (rate(concurrency_lock_wait_seconds_sum[1m]))) / (sum by (strategy, ep) (rate(concurrency_lock_wait_seconds_count[1m])))",
+          "expr": "(sum by (strategy, ep) (rate(concurrency_lock_wait_seconds_sum{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[1m]))) / clamp_min(sum by (strategy, ep) (rate(concurrency_lock_wait_seconds_count{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[1m])), 1)",
           "legendFormat": "{{strategy}} · {{ep}}"
         }
       ],
@@ -28,7 +28,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.90, sum(rate(concurrency_lock_wait_seconds_bucket[1m])) by (le, strategy, ep))",
+          "expr": "histogram_quantile(0.90, sum(rate(concurrency_lock_wait_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[1m])) by (le, strategy, ep))",
           "legendFormat": "{{strategy}} · {{ep}}"
         }
       ],
@@ -42,7 +42,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.99, sum(rate(concurrency_lock_wait_seconds_bucket[1m])) by (le, strategy, ep))",
+          "expr": "histogram_quantile(0.99, sum(rate(concurrency_lock_wait_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[1m])) by (le, strategy, ep))",
           "legendFormat": "{{strategy}} · {{ep}}"
         }
       ],
@@ -57,13 +57,13 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "(sum by (strategy, ep) (increase(concurrency_lock_wait_seconds_sum[$__range])))/(sum by (strategy, ep) (increase(concurrency_lock_wait_seconds_count[$__range])))",
+          "expr": "(sum by (strategy, ep) (increase(concurrency_lock_wait_seconds_sum{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))/(clamp_min(sum by (strategy, ep) (increase(concurrency_lock_wait_seconds_count{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])),1))",
           "legendFormat": "{{strategy}} · {{ep}}"
           ,"instant": true
         }
       ],
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": true },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "Value", "values": true },
         "orientation": "horizontal",
         "textMode": "value_and_name",
         "colorMode": "value",
@@ -82,13 +82,13 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.90, sum by (le, strategy, ep) (increase(concurrency_lock_wait_seconds_bucket[$__range])))",
+          "expr": "histogram_quantile(0.90, sum by (le, strategy, ep) (increase(concurrency_lock_wait_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))",
           "legendFormat": "{{strategy}} · {{ep}}"
           ,"instant": true
         }
       ],
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": true },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "Value", "values": true },
         "orientation": "horizontal",
         "textMode": "value_and_name",
         "colorMode": "value",
@@ -107,9 +107,34 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.99, sum by (le, strategy, ep) (increase(concurrency_lock_wait_seconds_bucket[$__range])))",
+          "expr": "histogram_quantile(0.99, sum by (le, strategy, ep) (increase(concurrency_lock_wait_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))",
           "legendFormat": "{{strategy}} · {{ep}}"
           ,"instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "Value", "values": true },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "transformations": [ { "id": "seriesToRows", "options": {} } ],
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] }
+    }
+    ,
+    {
+      "type": "stat",
+      "title": "AVG tx duration (ms; range; by strategy, ep)",
+      "gridPos": { "x": 0, "y": 30, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "1000 * (sum by (strategy, ep) (increase(concurrency_tx_duration_seconds_sum{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))/(clamp_min(sum by (strategy, ep) (increase(concurrency_tx_duration_seconds_count{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])),1))",
+          "legendFormat": "{{strategy}} · {{ep}}",
+          "instant": true
         }
       ],
       "options": {
@@ -121,7 +146,58 @@
         "justifyMode": "auto"
       },
       "transformations": [ { "id": "seriesToRows", "options": {} } ],
-      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] }
+      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 2 }, "overrides": [] }
     }
+    ,
+    {
+      "type": "stat",
+      "title": "p90 tx duration (ms; range; by strategy, ep)",
+      "gridPos": { "x": 8, "y": 30, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "1000 * histogram_quantile(0.90, sum by (le, strategy, ep) (increase(concurrency_tx_duration_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))",
+          "legendFormat": "{{strategy}} · {{ep}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": true },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "transformations": [ { "id": "seriesToRows", "options": {} } ],
+      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 2 }, "overrides": [] }
+    }
+    ,
+    {
+      "type": "stat",
+      "title": "p99 tx duration (ms; range; by strategy, ep)",
+      "gridPos": { "x": 16, "y": 30, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "1000 * histogram_quantile(0.99, sum by (le, strategy, ep) (increase(concurrency_tx_duration_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))",
+          "legendFormat": "{{strategy}} · {{ep}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": true },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "transformations": [ { "id": "seriesToRows", "options": {} } ],
+      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 2 }, "overrides": [] }
+    }
+    
   ]
 }

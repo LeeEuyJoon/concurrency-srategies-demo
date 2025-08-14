@@ -1,4 +1,4 @@
-package study.experiment;
+package study.concurrencyproblem.experiment;
 
 public enum ExperimentType {
 	WITHDRAW_ONLY,

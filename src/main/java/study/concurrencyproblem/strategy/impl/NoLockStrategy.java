@@ -6,7 +6,7 @@ import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.repository.AccountRepository;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
-import study.experiment.ExperimentType;
+import study.concurrencyproblem.experiment.ExperimentType;
 
 @Component
 public class NoLockStrategy implements LockStrategy {
