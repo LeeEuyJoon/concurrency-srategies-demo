@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.repository.AccountRepository;
@@ -26,6 +27,7 @@ public class SynchronizedStrategy implements LockStrategy {
 
 	// 잔액 조회
 	@Override
+	@Transactional(readOnly = true)
 	public Integer getBalance(Long id, ExperimentType experimentType) {
 		return executeWithLock(id, experimentType, () ->
 			accountRepository.getBalance(id).orElseThrow()
@@ -34,6 +36,7 @@ public class SynchronizedStrategy implements LockStrategy {
 
 	// 출금
 	@Override
+	@Transactional
 	public Integer withdraw(Long id, Integer amount, ExperimentType experimentType) {
 		return executeWithLock(id, experimentType, () -> {
 			Account account = accountRepository.findById(id).orElseThrow();
@@ -45,6 +48,7 @@ public class SynchronizedStrategy implements LockStrategy {
 
 	// 예금
 	@Override
+	@Transactional
 	public Integer deposit(Long id, Integer amount, ExperimentType experimentType) {
 		return executeWithLock(id, experimentType, () -> {
 			Account account = accountRepository.findById(id).orElseThrow();

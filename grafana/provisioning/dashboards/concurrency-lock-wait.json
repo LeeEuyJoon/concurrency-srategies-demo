@@ -48,5 +48,80 @@
       ],
       "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
     }
+    ,
+    {
+      "type": "stat",
+      "title": "AVG lock wait (range; by strategy, ep)",
+      "gridPos": { "x": 0, "y": 24, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "(sum by (strategy, ep) (increase(concurrency_lock_wait_seconds_sum[$__range])))/(sum by (strategy, ep) (increase(concurrency_lock_wait_seconds_count[$__range])))",
+          "legendFormat": "{{strategy}} · {{ep}}"
+          ,"instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": true },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "transformations": [ { "id": "seriesToRows", "options": {} } ],
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] }
+    }
+    ,
+    {
+      "type": "stat",
+      "title": "p90 lock wait (range; by strategy, ep)",
+      "gridPos": { "x": 8, "y": 24, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.90, sum by (le, strategy, ep) (increase(concurrency_lock_wait_seconds_bucket[$__range])))",
+          "legendFormat": "{{strategy}} · {{ep}}"
+          ,"instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": true },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "transformations": [ { "id": "seriesToRows", "options": {} } ],
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] }
+    }
+    ,
+    {
+      "type": "stat",
+      "title": "p99 lock wait (range; by strategy, ep)",
+      "gridPos": { "x": 16, "y": 24, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum by (le, strategy, ep) (increase(concurrency_lock_wait_seconds_bucket[$__range])))",
+          "legendFormat": "{{strategy}} · {{ep}}"
+          ,"instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": true },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "transformations": [ { "id": "seriesToRows", "options": {} } ],
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] }
+    }
   ]
 }
