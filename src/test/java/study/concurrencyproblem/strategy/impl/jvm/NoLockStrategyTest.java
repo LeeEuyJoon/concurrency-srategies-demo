@@ -112,14 +112,11 @@ class NoLockStrategyTest {
 		doneLatch.await();
 		executor.shutdown();
 
-		// [ Then: 최종 잔액이 0원이 아닌 50,000원이면 통과 (락 없는 상황에서 동시성 문제 발생 확인) ]
+		// [ Then: 최종 잔액이 0원이면 통과 ]
 		int finalBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
 		System.out.printf("초기 잔액=%d, 최종 잔액=%d%n", initialBalance, finalBalance);
 
-		assertEquals(
-			initialBalance - withdrawAmount,
-			finalBalance
-		);
+		assertEquals(0, finalBalance);
 	}
 
 	@Test
@@ -165,10 +162,10 @@ class NoLockStrategyTest {
 		doneLatch.await();
 		executor.shutdown();
 
-		// [ Then: 최종 잔액이 50,000원이 아니면 통과 (락 없는 상황에서 동시성 문제 발생 확인) ]
+		// [ Then: 최종 잔액이 50,000원이면 통과 ]
 		int finalBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
 		System.out.printf("초기 잔액=%d, 최종 잔액=%d%n", initialBalance, finalBalance);
 
-		assertTrue(finalBalance > 0);
+		assertEquals(50_000, finalBalance);
 	}
 }
