@@ -11,4 +11,6 @@ public interface LockStrategy {
     Integer deposit(Long id, Integer amount, ExperimentType experimentType);
 
     Strategy getStrategyType();
+
+
 }
