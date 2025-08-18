@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
@@ -26,6 +27,7 @@ public class ReentrantLockStrategy implements LockStrategy {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Integer getBalance(Long id, ExperimentType experimentType) {
 		return executeWithLock(id, experimentType, () ->
 				accountRepository.getBalance(id).orElseThrow()
@@ -33,6 +35,7 @@ public class ReentrantLockStrategy implements LockStrategy {
 	}
 
 	@Override
+	@Transactional
 	public Integer withdraw(Long id, Integer amount, ExperimentType experimentType) {
 		return executeWithLock(id, experimentType, () -> {
 			Account account = accountRepository.findById(id).orElseThrow();
@@ -43,6 +46,7 @@ public class ReentrantLockStrategy implements LockStrategy {
 	}
 
 	@Override
+	@Transactional
 	public Integer deposit(Long id, Integer amount, ExperimentType experimentType) {
 		return executeWithLock(id, experimentType, () -> {
 			Account account = accountRepository.findById(id).orElseThrow();
