@@ -1,36 +1,39 @@
-package study.concurrencyproblem.strategy.impl;
+package study.concurrencyproblem.strategy.impl.jvm.tx;
+
+import static study.concurrencyproblem.strategy.Strategy.*;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.StampedLock;
 import java.util.function.Supplier;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import study.concurrencyproblem.domain.Account;
-import study.concurrencyproblem.repository.AccountRepository;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
+import study.concurrencyproblem.repository.AccountRepository;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
 import study.concurrencyproblem.experiment.ExperimentType;
 
 @Component
-public class SynchronizedStrategy implements LockStrategy {
+public class StampedLockStrategy implements LockStrategy {
 
 	private final LockMetrics metrics;
 	private final AccountRepository accountRepository;
-	private final ConcurrentHashMap<Long, Object> monitors = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Long, StampedLock> locks = new ConcurrentHashMap<>();
 
-	public SynchronizedStrategy(LockMetrics metrics, AccountRepository accountRepository) {
+	public StampedLockStrategy(LockMetrics metrics, AccountRepository accountRepository) {
 		this.metrics = metrics;
 		this.accountRepository = accountRepository;
 	}
 
 	@Override
-	@Transactional(readOnly = true)
+	@Transactional
 	public Integer getBalance(Long id, ExperimentType experimentType) {
 		return executeWithLock(id, experimentType, () ->
 			accountRepository.getBalance(id).orElseThrow()
-		);
+		, false);
 	}
 
 	@Override
@@ -41,7 +44,7 @@ public class SynchronizedStrategy implements LockStrategy {
 			account.setBalance(account.getBalance() - amount);
 			accountRepository.save(account);
 			return account.getBalance();
-		});
+		}, true);
 	}
 
 	@Override
@@ -52,22 +55,44 @@ public class SynchronizedStrategy implements LockStrategy {
 			account.setBalance(account.getBalance() + amount);
 			accountRepository.save(account);
 			return account.getBalance();
-		});
+		}, true);
 	}
 
 	@Override
-	public Strategy getStrategyType() { return Strategy.SYNCHRONIZED; }
+	public Strategy getStrategyType() { return STAMPED_LOCK; }
 
 	private Integer executeWithLock(Long id, ExperimentType experimentType
-									, Supplier<Integer> criticalSection) {
+		, Supplier<Integer> criticalSection, boolean isWrite) {
 		Strategy strategy = getStrategyType();
-		Object monitor = monitors.computeIfAbsent(id, k -> new Object());
+		StampedLock lock = locks.computeIfAbsent(id, k -> new StampedLock());
 
 		long t0 = System.nanoTime();
-		synchronized (monitor) {
-			long waited = System.nanoTime() - t0;
-			metrics.recordWait(strategy, experimentType, waited);
-			return criticalSection.get();
+
+		if (isWrite) {
+			long stamp = lock.writeLock();
+
+			try {
+				long waited = System.nanoTime() - t0;
+				metrics.recordWait(strategy, experimentType, waited);
+				return criticalSection.get();
+			} finally {
+				lock.unlockWrite(stamp);
+			}
+		} else {
+			long stamp = lock.tryOptimisticRead();
+			Integer result = criticalSection.get();
+
+			if (!lock.validate(stamp)) {
+				stamp = lock.readLock();
+				try {
+					long waited = System.nanoTime() - t0;
+					metrics.recordWait(strategy, experimentType, waited);
+					result = criticalSection.get();
+				} finally {
+					lock.unlockRead(stamp);
+				}
+			}
+			return result;
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package study.concurrencyproblem.strategy.impl;
+package study.concurrencyproblem.strategy.impl.jvm;
 
 import static study.concurrencyproblem.strategy.Strategy.*;
 

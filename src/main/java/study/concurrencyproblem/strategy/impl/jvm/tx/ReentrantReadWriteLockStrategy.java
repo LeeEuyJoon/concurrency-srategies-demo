@@ -1,9 +1,9 @@
-package study.concurrencyproblem.strategy.impl;
+package study.concurrencyproblem.strategy.impl.jvm.tx;
 
 import static study.concurrencyproblem.strategy.Strategy.*;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.StampedLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
 import org.springframework.stereotype.Component;
@@ -17,23 +17,24 @@ import study.concurrencyproblem.strategy.Strategy;
 import study.concurrencyproblem.experiment.ExperimentType;
 
 @Component
-public class StampedLockStrategy implements LockStrategy {
+public class ReentrantReadWriteLockStrategy implements LockStrategy {
 
 	private final LockMetrics metrics;
 	private final AccountRepository accountRepository;
-	private final ConcurrentHashMap<Long, StampedLock> locks = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Long, ReentrantReadWriteLock> locks = new ConcurrentHashMap<>();
 
-	public StampedLockStrategy(LockMetrics metrics, AccountRepository accountRepository) {
+	public ReentrantReadWriteLockStrategy(LockMetrics metrics, AccountRepository accountRepository) {
 		this.metrics = metrics;
 		this.accountRepository = accountRepository;
 	}
 
 	@Override
-	@Transactional
+	@Transactional(readOnly = true)
 	public Integer getBalance(Long id, ExperimentType experimentType) {
 		return executeWithLock(id, experimentType, () ->
 			accountRepository.getBalance(id).orElseThrow()
-		, false);
+			, false
+		);
 	}
 
 	@Override
@@ -59,40 +60,33 @@ public class StampedLockStrategy implements LockStrategy {
 	}
 
 	@Override
-	public Strategy getStrategyType() { return STAMPED_LOCK; }
+	public Strategy getStrategyType() {
+		return REENTRANT_READ_WRITE_LOCK;
+	}
 
 	private Integer executeWithLock(Long id, ExperimentType experimentType
-		, Supplier<Integer> criticalSection, boolean isWrite) {
+									, Supplier<Integer> criticalSection, boolean isWrite) {
 		Strategy strategy = getStrategyType();
-		StampedLock lock = locks.computeIfAbsent(id, k -> new StampedLock());
+		ReentrantReadWriteLock lock = locks.computeIfAbsent(id, k -> new ReentrantReadWriteLock());
 
 		long t0 = System.nanoTime();
 
 		if (isWrite) {
-			long stamp = lock.writeLock();
-
-			try {
-				long waited = System.nanoTime() - t0;
-				metrics.recordWait(strategy, experimentType, waited);
-				return criticalSection.get();
-			} finally {
-				lock.unlockWrite(stamp);
-			}
+			lock.writeLock().lock();
 		} else {
-			long stamp = lock.tryOptimisticRead();
-			Integer result = criticalSection.get();
+			lock.readLock().lock();
+		}
 
-			if (!lock.validate(stamp)) {
-				stamp = lock.readLock();
-				try {
-					long waited = System.nanoTime() - t0;
-					metrics.recordWait(strategy, experimentType, waited);
-					result = criticalSection.get();
-				} finally {
-					lock.unlockRead(stamp);
-				}
+		try {
+			long waited = System.nanoTime() - t0;
+			metrics.recordWait(strategy, experimentType, waited);
+			return criticalSection.get();
+		} finally {
+			if (isWrite) {
+				lock.writeLock().unlock();
+			} else {
+				lock.readLock().unlock();
 			}
-			return result;
 		}
 	}
 }

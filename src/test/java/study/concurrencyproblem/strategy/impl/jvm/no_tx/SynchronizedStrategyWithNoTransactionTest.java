@@ -1,4 +1,4 @@
-package study.concurrencyproblem.strategy.impl;
+package study.concurrencyproblem.strategy.impl.jvm.no_tx;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static study.concurrencyproblem.experiment.ExperimentType.*;
@@ -19,12 +19,12 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import study.concurrencyproblem.domain.Account;
-import study.concurrencyproblem.experiment.ExperimentType;
+import study.concurrencyproblem.strategy.impl.jvm.NoLockStrategy;
+import study.concurrencyproblem.strategy.impl.jvm.tx.SynchronizedStrategy;
 
 @SpringBootTest
 @Testcontainers
-class NoLockStrategyTest {
-
+class SynchronizedStrategyWithNoTransactionTest {
 	@Container
 	static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
 		.withDatabaseName("concurrency_test")
@@ -41,6 +41,8 @@ class NoLockStrategyTest {
 	}
 
 	@Autowired
+	private SynchronizedStrategyWithNoTransaction strategy;
+	@Autowired
 	private NoLockStrategy noLockStrategy;
 
 	private Long testAccountId;
@@ -51,30 +53,30 @@ class NoLockStrategyTest {
 		Account account = noLockStrategy.createAccount(100_000);
 		testAccountId = account.getId();
 
-		System.out.println("초기 잔액: " + noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY) + "원");
+		System.out.println("초기 잔액: " + strategy.getBalance(testAccountId, WITHDRAW_ONLY) + "원");
 	}
 
 	@Test
 	@DisplayName("단일 스레드 출금 테스트 - 정상 동작")
 	void singleThreadWithdrawTest() {
 		// Given
-		int initialBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 		int withdrawAmount = 3000;
 
 		// When
-		noLockStrategy.withdraw(testAccountId, withdrawAmount, WITHDRAW_ONLY);
+		strategy.withdraw(testAccountId, withdrawAmount, WITHDRAW_ONLY);
 
 		// Then
-		int finalBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+		int finalBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 		assertEquals(initialBalance - withdrawAmount, finalBalance);
 		System.out.println("단일 스레드 테스트 - 최종 잔액: " + finalBalance + "원");
 	}
 
 	@Test
-	@DisplayName("Race Condition - 잔고가 100,00원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
+	@DisplayName("Race Condition - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
 	void twoThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
-		int initialBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 		assertEquals(100_000, initialBalance);
 
 		int threadCount    = 2;
@@ -93,12 +95,15 @@ class NoLockStrategyTest {
 				try {
 					startLatch.await();
 
-					int balanceRead = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+					System.out.println("getClass : " + strategy.getClass());
+
+					int balanceRead = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 					System.out.printf("Thread-%d 읽은 잔고: %d원%n", threadNumber, balanceRead);
 
-					noLockStrategy.withdraw(testAccountId, withdrawAmount, WITHDRAW_ONLY);
+					strategy
+						.withdraw(testAccountId, withdrawAmount, WITHDRAW_ONLY);
 
-					int balanceAfter = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+					int balanceAfter = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 					System.out.printf("Thread-%d 인출 후 잔고: %d원%n", threadNumber, balanceAfter);
 
 				} catch (InterruptedException ignored) {
@@ -113,21 +118,18 @@ class NoLockStrategyTest {
 		doneLatch.await();
 		executor.shutdown();
 
-		// [ Then: 최종 잔액이 0원이 아닌 50,000원이면 통과 (실패가 통과) ]
-		int finalBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+		// [ Then: 최종 잔액이 0원이면 통과]
+		int finalBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 		System.out.printf("초기 잔액=%d, 최종 잔액=%d%n", initialBalance, finalBalance);
+		assertEquals(0, finalBalance);
 
-		assertEquals(
-			initialBalance - withdrawAmount,
-			finalBalance
-		);
 	}
 
 	@Test
 	@DisplayName("Race Condition - 잔고가 100,000원인 계좌에서 50개의 스레드가 동시에 1,00원씩 인출")
 	void oneHundredThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
-		int initialBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 		assertEquals(100_000, initialBalance);
 
 		int threadCount    = 50;
@@ -138,7 +140,7 @@ class NoLockStrategyTest {
 		CountDownLatch startLatch  = new CountDownLatch(1);
 		CountDownLatch doneLatch   = new CountDownLatch(threadCount);
 
-		// [ When: 100개의 스레드가 동시에 인출을 시도할 때 ]
+		// [ When: 50개의 스레드가 동시에 인출을 시도할 때 ]
 		for (int i = 0; i < threadCount; i++) {
 			final int threadNumber = i + 1;
 			executor.submit(() -> {
@@ -146,12 +148,12 @@ class NoLockStrategyTest {
 				try {
 					startLatch.await();
 
-					int balanceRead = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+					int balanceRead = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 					System.out.printf("Thread-%d 읽은 잔고: %d원%n", threadNumber, balanceRead);
 
-					noLockStrategy.withdraw(testAccountId, withdrawAmount, WITHDRAW_ONLY);
+					strategy.withdraw(testAccountId, withdrawAmount, WITHDRAW_ONLY);
 
-					int balanceAfter = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+					int balanceAfter = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 					System.out.printf("Thread-%d 인출 후 잔고: %d원%n", threadNumber, balanceAfter);
 
 				} catch (InterruptedException ignored) {
@@ -166,10 +168,10 @@ class NoLockStrategyTest {
 		doneLatch.await();
 		executor.shutdown();
 
-		// [ Then: 최종 잔액이 0원이 아니면 통과 (실패가 통과) ]
-		int finalBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
+		// [ Then: 최종 잔액이 50,00원이면 통과 ]
+		int finalBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
 		System.out.printf("초기 잔액=%d, 최종 잔액=%d%n", initialBalance, finalBalance);
 
-		assertTrue(finalBalance > 0);
+		assertEquals(50_000, finalBalance);
 	}
 }
