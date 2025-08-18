@@ -14,5 +14,5 @@
 - Nginx - 로드밸런싱
 - Micrometer - 메트릭 계측
 - Prometheus - 메트릭 수집
-- Grafana - 대시보드 시각화
-- JMeter - 동시성 유발 테스트
+- Grafana - 메트릭 대시보드
+- JMeter - 동시성 테스트
