@@ -25,7 +25,6 @@ public class SynchronizedStrategy implements LockStrategy {
 		this.accountRepository = accountRepository;
 	}
 
-	// 잔액 조회
 	@Override
 	@Transactional(readOnly = true)
 	public Integer getBalance(Long id, ExperimentType experimentType) {
@@ -34,7 +33,6 @@ public class SynchronizedStrategy implements LockStrategy {
 		);
 	}
 
-	// 출금
 	@Override
 	@Transactional
 	public Integer withdraw(Long id, Integer amount, ExperimentType experimentType) {
@@ -46,7 +44,6 @@ public class SynchronizedStrategy implements LockStrategy {
 		});
 	}
 
-	// 예금
 	@Override
 	@Transactional
 	public Integer deposit(Long id, Integer amount, ExperimentType experimentType) {
@@ -58,7 +55,9 @@ public class SynchronizedStrategy implements LockStrategy {
 		});
 	}
 
-	// 락 대기 시간 계측 공통 로직
+	@Override
+	public Strategy getStrategyType() { return Strategy.SYNCHRONIZED; }
+
 	private Integer executeWithLock(Long id, ExperimentType experimentType
 									, Supplier<Integer> criticalSection) {
 		Strategy strategy = getStrategyType();
@@ -70,10 +69,5 @@ public class SynchronizedStrategy implements LockStrategy {
 			metrics.recordWait(strategy, experimentType, waited);
 			return criticalSection.get();
 		}
-	}
-
-	@Override
-	public Strategy getStrategyType() {
-		return Strategy.SYNCHRONIZED;
 	}
 }

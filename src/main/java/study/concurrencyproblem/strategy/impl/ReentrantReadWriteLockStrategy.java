@@ -1,11 +1,11 @@
 package study.concurrencyproblem.strategy.impl;
 
+import static study.concurrencyproblem.strategy.Strategy.*;
+
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,7 +61,7 @@ public class ReentrantReadWriteLockStrategy implements LockStrategy {
 
 	@Override
 	public Strategy getStrategyType() {
-		return Strategy.REENTRANT_READ_WRITE_LOCK;
+		return REENTRANT_READ_WRITE_LOCK;
 	}
 
 	private Integer executeWithLock(Long id, ExperimentType experimentType

@@ -1,5 +1,7 @@
 package study.concurrencyproblem.strategy.impl;
 
+import static study.concurrencyproblem.strategy.Strategy.*;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -57,9 +59,7 @@ public class ReentrantLockStrategy implements LockStrategy {
 	}
 
 	@Override
-	public Strategy getStrategyType() {
-		return Strategy.REENTRANT_LOCK;
-	}
+	public Strategy getStrategyType() { return REENTRANT_LOCK; }
 
 	private Integer executeWithLock(Long id, ExperimentType experimentType
 								, Supplier<Integer> criticalSection) {
