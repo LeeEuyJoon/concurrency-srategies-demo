@@ -3,6 +3,8 @@ package study.concurrencyproblem.experiment.metrics;
 import io.micrometer.core.instrument.LongTaskTimer;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import study.concurrencyproblem.strategy.LockStrategy;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -27,23 +29,38 @@ public class TxMetricsAspect {
 	@Around("@annotation(org.springframework.transaction.annotation.Transactional) || " +
 		"@within(org.springframework.transaction.annotation.Transactional)")
 	public Object measureTx(ProceedingJoinPoint pjp) throws Throwable {
-		String strategy = Optional.ofNullable(MetricContext.strategy()).orElse("UNKNOWN");
-		String ep       = Optional.ofNullable(MetricContext.ep()).orElse("UNKNOWN");
+		// strategy: MetricContext → LockStrategy fallback
+		String strategyTag = Optional.ofNullable(MetricContext.strategy())
+			.orElseGet(() -> (pjp.getTarget() instanceof LockStrategy ls)
+				? ls.getStrategyType().name()
+				: "UNKNOWN");
+
+		// ep: MetricContext → 메서드 인자에서 ExperimentType fallback
+		String epTag = Optional.ofNullable(MetricContext.ep())
+			.orElseGet(() -> {
+				for (Object arg : pjp.getArgs()) {
+					if (arg instanceof study.concurrencyproblem.experiment.ExperimentType et) {
+						return et.name();
+					}
+				}
+				return "UNKNOWN";
+			});
+
 		boolean readOnly = resolveReadOnly(pjp);
 
 		LongTaskTimer ltt = LongTaskTimer.builder("concurrency.tx.active")
 			.description("Active transactions in progress")
-			.tag("strategy", strategy).tag("ep", ep)
+			.tag("strategy", strategyTag).tag("ep", epTag)
 			.tag("rw", Boolean.toString(readOnly))
 			.register(registry);
 		LongTaskTimer.Sample active = ltt.start();
 
 		Timer.Sample sample = Timer.start(registry);
 		try {
-			Object ret = pjp.proceed(); // 내부에서 begin→method→commit/rollback
+			Object ret = pjp.proceed();
 			sample.stop(Timer.builder("concurrency.tx.duration")
 				.description("Transaction open duration")
-				.tag("strategy", strategy).tag("ep", ep)
+				.tag("strategy", strategyTag).tag("ep", epTag)
 				.tag("rw", Boolean.toString(readOnly))
 				.tag("status", "committed")
 				.register(registry));
@@ -51,7 +68,7 @@ public class TxMetricsAspect {
 		} catch (Throwable t) {
 			sample.stop(Timer.builder("concurrency.tx.duration")
 				.description("Transaction open duration")
-				.tag("strategy", strategy).tag("ep", ep)
+				.tag("strategy", strategyTag).tag("ep", epTag)
 				.tag("rw", Boolean.toString(readOnly))
 				.tag("status", "rolled_back")
 				.register(registry));
@@ -60,6 +77,7 @@ public class TxMetricsAspect {
 			active.stop();
 		}
 	}
+
 
 	private boolean resolveReadOnly(ProceedingJoinPoint pjp) {
 		MethodSignature sig = (MethodSignature) pjp.getSignature();

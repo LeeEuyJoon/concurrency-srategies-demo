@@ -16,48 +16,48 @@ import study.concurrencyproblem.strategy.Strategy;
 
 @Component
 public class SynchronizedStrategyRefactor implements LockStrategy {
-	private final ConcurrentHashMap<Long, Object> monitors = new ConcurrentHashMap<>();
-	protected final LockMetrics metrics;
-	protected final TxWorker worker;
+    private final ConcurrentHashMap<Long, Object> monitors = new ConcurrentHashMap<>();
+    protected final LockMetrics metrics;
+    protected final TxWorker worker;
 
-	public SynchronizedStrategyRefactor(LockMetrics metrics, TxWorker worker) {
-		this.metrics = metrics;
-		this.worker = worker;
-	}
+    public SynchronizedStrategyRefactor(LockMetrics metrics, TxWorker worker) {
+        this.metrics = metrics;
+        this.worker = worker;
+    }
 
-	@Override
-	public Integer getBalance(Long id, ExperimentType ep) {
-		return executeWithLock(id, ep, () -> worker.getBalanceTx(id));
-	}
+    @Override
+    public Integer getBalance(Long id, ExperimentType ep) {
+        return executeWithLock(id, ep, () -> worker.getBalanceTx(id));
+    }
 
-	@Override
-	public Integer withdraw(Long id, Integer amount, ExperimentType ep) {
-		return executeWithLock(id, ep, () -> worker.withdrawTx(id, amount));
-	}
+    @Override
+    public Integer withdraw(Long id, Integer amount, ExperimentType ep) {
+        return executeWithLock(id, ep, () -> worker.withdrawTx(id, amount));
+    }
 
-	@Override
-	public Integer deposit(Long id, Integer amount, ExperimentType ep) {
-		return executeWithLock(id, ep, () -> worker.depositTx(id, amount));
-	}
+    @Override
+    public Integer deposit(Long id, Integer amount, ExperimentType ep) {
+        return executeWithLock(id, ep, () -> worker.depositTx(id, amount));
+    }
 
-	@Override
-	public Strategy getStrategyType() { return SYNCHRONIZED_REFACTOR; }
+    @Override
+    public Strategy getStrategyType() { return SYNCHRONIZED_REFACTOR; }
 
-	private <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body) {
-		Strategy strategy = getStrategyType();
-		Object monitor = monitors.computeIfAbsent(id, k -> new Object());
+    private <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body) {
+        Strategy strategy = getStrategyType();
+        Object monitor = monitors.computeIfAbsent(id, k -> new Object());
 
-		long t0 = System.nanoTime();
-		synchronized (monitor) {
-			long waited = System.nanoTime() - t0;
-			metrics.recordWait(strategy, ep, waited);
+        long t0 = System.nanoTime();
+        synchronized (monitor) {
+            long waited = System.nanoTime() - t0;
+            metrics.recordWait(strategy, ep, waited);
 
-			MetricContext.set(strategy.name(), ep.name());
-			try {
-				return body.get();
-			} finally {
-				MetricContext.clear();
-			}
-		}
-	}
+            MetricContext.set(strategy.name(), ep.name());
+            try {
+                return body.get();
+            } finally {
+                MetricContext.clear();
+            }
+        }
+    }
 }

@@ -66,6 +66,7 @@ public class NoLockStrategy implements LockStrategy {
 			return account.getBalance();
 		} finally {
 			MetricContext.clear();
+		}
 	}
 
 	@Override

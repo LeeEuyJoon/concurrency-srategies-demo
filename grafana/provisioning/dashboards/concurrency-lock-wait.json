@@ -71,7 +71,19 @@
         "justifyMode": "auto"
       },
       "transformations": [ { "id": "seriesToRows", "options": {} } ],
-      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] }
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "s", 
+          "decimals": 3,
+          "custom": {
+            "legend": {
+              "sortBy": "Name",
+              "sortDesc": false
+            }
+          }
+        }, 
+        "overrides": [] 
+      }
     }
     ,
     {
@@ -96,7 +108,19 @@
         "justifyMode": "auto"
       },
       "transformations": [ { "id": "seriesToRows", "options": {} } ],
-      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] }
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "s", 
+          "decimals": 3,
+          "custom": {
+            "legend": {
+              "sortBy": "Name",
+              "sortDesc": false
+            }
+          }
+        }, 
+        "overrides": [] 
+      }
     }
     ,
     {
@@ -121,7 +145,19 @@
         "justifyMode": "auto"
       },
       "transformations": [ { "id": "seriesToRows", "options": {} } ],
-      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] }
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "s", 
+          "decimals": 3,
+          "custom": {
+            "legend": {
+              "sortBy": "Name",
+              "sortDesc": false
+            }
+          }
+        }, 
+        "overrides": [] 
+      }
     }
     ,
     {
@@ -146,7 +182,19 @@
         "justifyMode": "auto"
       },
       "transformations": [ { "id": "seriesToRows", "options": {} } ],
-      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 2 }, "overrides": [] }
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "ms", 
+          "decimals": 2,
+          "custom": {
+            "legend": {
+              "sortBy": "Name",
+              "sortDesc": false
+            }
+          }
+        }, 
+        "overrides": [] 
+      }
     }
     ,
     {
@@ -171,7 +219,19 @@
         "justifyMode": "auto"
       },
       "transformations": [ { "id": "seriesToRows", "options": {} } ],
-      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 2 }, "overrides": [] }
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "ms", 
+          "decimals": 2,
+          "custom": {
+            "legend": {
+              "sortBy": "Name",
+              "sortDesc": false
+            }
+          }
+        }, 
+        "overrides": [] 
+      }
     }
     ,
     {
@@ -196,7 +256,19 @@
         "justifyMode": "auto"
       },
       "transformations": [ { "id": "seriesToRows", "options": {} } ],
-      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 2 }, "overrides": [] }
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "ms", 
+          "decimals": 2,
+          "custom": {
+            "legend": {
+              "sortBy": "Name",
+              "sortDesc": false
+            }
+          }
+        }, 
+        "overrides": [] 
+      }
     }
     
   ]
