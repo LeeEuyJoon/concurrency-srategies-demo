@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import study.concurrencyproblem.experiment.ExperimentType;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
+import study.concurrencyproblem.experiment.metrics.MetricContext;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
 
@@ -48,14 +49,19 @@ public class ReentrantLockStrategyRefactor implements LockStrategy {
 		Strategy strategy = getStrategyType();
 		ReentrantLock lock = locks.computeIfAbsent(id, k -> new ReentrantLock());
 
-		long t0 = System.nanoTime();
-		lock.lock();
+		MetricContext.set(strategy.name(), ep.name());
 		try {
-			long waited = System.nanoTime() - t0;
-			metrics.recordWait(strategy, ep, waited);
-			return body.get();
+			long t0 = System.nanoTime();
+			lock.lock();
+			try {
+				long waited = System.nanoTime() - t0;
+				metrics.recordWait(strategy, ep, waited);
+				return body.get();
+			} finally {
+				lock.unlock();
+			}
 		} finally {
-			lock.unlock();
+			MetricContext.clear();
 		}
 	}
 }

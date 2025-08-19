@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import study.concurrencyproblem.experiment.ExperimentType;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
+import study.concurrencyproblem.experiment.metrics.MetricContext;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
 
@@ -44,24 +45,29 @@ public class ReentrantReadWriteLockStrategyRefactor implements LockStrategy {
 		Strategy strategy = getStrategyType();
 		ReentrantReadWriteLock lock = locks.computeIfAbsent(id, k -> new ReentrantReadWriteLock());
 
-		long t0 = System.nanoTime();
-
-		if (isWrite) {
-			lock.writeLock().lock();
-		} else {
-			lock.readLock().lock();
-		}
-
+		MetricContext.set(strategy.name(), ep.name());
 		try {
-			long waited = System.nanoTime() - t0;
-			metrics.recordWait(strategy, ep, waited);
-			return body.get();
-		} finally {
+			long t0 = System.nanoTime();
+
 			if (isWrite) {
-				lock.writeLock().unlock();
+				lock.writeLock().lock();
 			} else {
-				lock.readLock().unlock();
+				lock.readLock().lock();
 			}
+
+			try {
+				long waited = System.nanoTime() - t0;
+				metrics.recordWait(strategy, ep, waited);
+				return body.get();
+			} finally {
+				if (isWrite) {
+					lock.writeLock().unlock();
+				} else {
+					lock.readLock().unlock();
+				}
+			}
+		} finally {
+			MetricContext.clear();
 		}
 	}
 

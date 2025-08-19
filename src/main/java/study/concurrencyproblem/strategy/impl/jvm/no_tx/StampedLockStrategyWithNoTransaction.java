@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.experiment.ExperimentType;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
+import study.concurrencyproblem.experiment.metrics.MetricContext;
 import study.concurrencyproblem.repository.AccountRepository;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
@@ -62,33 +63,38 @@ public class StampedLockStrategyWithNoTransaction implements LockStrategy {
 		Strategy strategy = getStrategyType();
 		StampedLock lock = locks.computeIfAbsent(id, k -> new StampedLock());
 
-		long t0 = System.nanoTime();
+		MetricContext.set(strategy.name(), experimentType.name());
+		try {
+			long t0 = System.nanoTime();
 
-		if (isWrite) {
-			long stamp = lock.writeLock();
+			if (isWrite) {
+				long stamp = lock.writeLock();
 
-			try {
-				long waited = System.nanoTime() - t0;
-				metrics.recordWait(strategy, experimentType, waited);
-				return criticalSection.get();
-			} finally {
-				lock.unlockWrite(stamp);
-			}
-		} else {
-			long stamp = lock.tryOptimisticRead();
-			Integer result = criticalSection.get();
-
-			if (!lock.validate(stamp)) {
-				stamp = lock.readLock();
 				try {
 					long waited = System.nanoTime() - t0;
 					metrics.recordWait(strategy, experimentType, waited);
-					result = criticalSection.get();
+					return criticalSection.get();
 				} finally {
-					lock.unlockRead(stamp);
+					lock.unlockWrite(stamp);
 				}
+			} else {
+				long stamp = lock.tryOptimisticRead();
+				Integer result = criticalSection.get();
+
+				if (!lock.validate(stamp)) {
+					stamp = lock.readLock();
+					try {
+						long waited = System.nanoTime() - t0;
+						metrics.recordWait(strategy, experimentType, waited);
+						result = criticalSection.get();
+					} finally {
+						lock.unlockRead(stamp);
+					}
+				}
+				return result;
 			}
-			return result;
+		} finally {
+			MetricContext.clear();
 		}
 	}
 }

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
+import study.concurrencyproblem.experiment.metrics.MetricContext;
 import study.concurrencyproblem.repository.AccountRepository;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
@@ -66,14 +67,19 @@ public class ReentrantLockStrategy implements LockStrategy {
 		Strategy strategy = getStrategyType();
 		ReentrantLock lock = locks.computeIfAbsent(id, k -> new ReentrantLock());
 
-		long t0 = System.nanoTime();
-		lock.lock();
+		MetricContext.set(strategy.name(), experimentType.name());
 		try {
-			long waited = System.nanoTime() - t0;
-			metrics.recordWait(strategy, experimentType, waited);
-			return criticalSection.get();
+			long t0 = System.nanoTime();
+			lock.lock();
+			try {
+				long waited = System.nanoTime() - t0;
+				metrics.recordWait(strategy, experimentType, waited);
+				return criticalSection.get();
+			} finally {
+				lock.unlock();
+			}
 		} finally {
-			lock.unlock();
+			MetricContext.clear();
 		}
 	}
 }

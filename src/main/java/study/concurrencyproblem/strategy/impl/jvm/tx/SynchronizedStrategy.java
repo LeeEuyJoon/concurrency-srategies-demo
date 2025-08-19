@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.repository.AccountRepository;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
+import study.concurrencyproblem.experiment.metrics.MetricContext;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
 import study.concurrencyproblem.experiment.ExperimentType;
@@ -63,11 +64,16 @@ public class SynchronizedStrategy implements LockStrategy {
 		Strategy strategy = getStrategyType();
 		Object monitor = monitors.computeIfAbsent(id, k -> new Object());
 
-		long t0 = System.nanoTime();
-		synchronized (monitor) {
-			long waited = System.nanoTime() - t0;
-			metrics.recordWait(strategy, experimentType, waited);
-			return criticalSection.get();
+		MetricContext.set(strategy.name(), experimentType.name());
+		try {
+			long t0 = System.nanoTime();
+			synchronized (monitor) {
+				long waited = System.nanoTime() - t0;
+				metrics.recordWait(strategy, experimentType, waited);
+				return criticalSection.get();
+			}
+		} finally {
+			MetricContext.clear();
 		}
 	}
 }

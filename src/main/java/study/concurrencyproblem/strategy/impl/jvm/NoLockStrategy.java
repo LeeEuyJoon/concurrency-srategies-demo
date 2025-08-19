@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.repository.AccountRepository;
+import study.concurrencyproblem.experiment.metrics.MetricContext;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
 import study.concurrencyproblem.experiment.ExperimentType;
@@ -29,28 +30,42 @@ public class NoLockStrategy implements LockStrategy {
 	@Override
 	@Transactional
     public Integer getBalance(Long id, ExperimentType experimentType) {
-		return accountRepository.getBalance(id).
-			orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없음"));
+		MetricContext.set(getStrategyType().name(), experimentType.name());
+		try {
+			return accountRepository.getBalance(id).
+				orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없음"));
+		} finally {
+			MetricContext.clear();
+		}
     }
 
 	// 출금
 	@Override
 	@Transactional
 	public Integer withdraw(Long id, Integer amount, ExperimentType experimentType) {
-		Account account = accountRepository.findById(id).orElseThrow();
-		account.setBalance(account.getBalance() - amount);
-		accountRepository.save(account);
-		return account.getBalance();
+		MetricContext.set(getStrategyType().name(), experimentType.name());
+		try {
+			Account account = accountRepository.findById(id).orElseThrow();
+			account.setBalance(account.getBalance() - amount);
+			accountRepository.save(account);
+			return account.getBalance();
+		} finally {
+			MetricContext.clear();
+		}
 	}
 
 	// 예금
 	@Override
 	@Transactional
 	public Integer deposit(Long id, Integer amount, ExperimentType experimentType) {
-		Account account = accountRepository.findById(id).orElseThrow();
-		account.setBalance(account.getBalance() + amount);
-		accountRepository.save(account);
-		return account.getBalance();
+		MetricContext.set(getStrategyType().name(), experimentType.name());
+		try {
+			Account account = accountRepository.findById(id).orElseThrow();
+			account.setBalance(account.getBalance() + amount);
+			accountRepository.save(account);
+			return account.getBalance();
+		} finally {
+			MetricContext.clear();
 	}
 
 	@Override

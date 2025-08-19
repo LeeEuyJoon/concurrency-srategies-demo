@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
+import study.concurrencyproblem.experiment.metrics.MetricContext;
 import study.concurrencyproblem.repository.AccountRepository;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
@@ -69,24 +70,29 @@ public class ReentrantReadWriteLockStrategy implements LockStrategy {
 		Strategy strategy = getStrategyType();
 		ReentrantReadWriteLock lock = locks.computeIfAbsent(id, k -> new ReentrantReadWriteLock());
 
-		long t0 = System.nanoTime();
-
-		if (isWrite) {
-			lock.writeLock().lock();
-		} else {
-			lock.readLock().lock();
-		}
-
+		MetricContext.set(strategy.name(), experimentType.name());
 		try {
-			long waited = System.nanoTime() - t0;
-			metrics.recordWait(strategy, experimentType, waited);
-			return criticalSection.get();
-		} finally {
+			long t0 = System.nanoTime();
+
 			if (isWrite) {
-				lock.writeLock().unlock();
+				lock.writeLock().lock();
 			} else {
-				lock.readLock().unlock();
+				lock.readLock().lock();
 			}
+
+			try {
+				long waited = System.nanoTime() - t0;
+				metrics.recordWait(strategy, experimentType, waited);
+				return criticalSection.get();
+			} finally {
+				if (isWrite) {
+					lock.writeLock().unlock();
+				} else {
+					lock.readLock().unlock();
+				}
+			}
+		} finally {
+			MetricContext.clear();
 		}
 	}
 }
