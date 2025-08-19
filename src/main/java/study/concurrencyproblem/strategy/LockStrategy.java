@@ -12,5 +12,4 @@ public interface LockStrategy {
 
     Strategy getStrategyType();
 
-
 }

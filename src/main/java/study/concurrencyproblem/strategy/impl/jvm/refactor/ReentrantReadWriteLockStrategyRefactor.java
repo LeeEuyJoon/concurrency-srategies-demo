@@ -4,60 +4,69 @@ import static study.concurrencyproblem.strategy.Strategy.*;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
 import org.springframework.stereotype.Component;
 
 import study.concurrencyproblem.experiment.ExperimentType;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
-import study.concurrencyproblem.experiment.metrics.MetricContext;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
 
 @Component
-public class SynchronizedStrategyRefactor implements LockStrategy {
-	private final ConcurrentHashMap<Long, Object> monitors = new ConcurrentHashMap<>();
+public class ReentrantReadWriteLockStrategyRefactor implements LockStrategy {
+	private final ConcurrentHashMap<Long, ReentrantReadWriteLock> locks = new ConcurrentHashMap<>();
 	protected final LockMetrics metrics;
 	protected final TxWorker worker;
 
-	public SynchronizedStrategyRefactor(LockMetrics metrics, TxWorker worker) {
+	public ReentrantReadWriteLockStrategyRefactor(LockMetrics metrics, TxWorker worker) {
 		this.metrics = metrics;
 		this.worker = worker;
 	}
 
 	@Override
 	public Integer getBalance(Long id, ExperimentType ep) {
-		return executeWithLock(id, ep, () -> worker.getBalanceTx(id));
+		return executeWithLock(id, ep, () -> worker.getBalanceTx(id), false);
 	}
 
 	@Override
 	public Integer withdraw(Long id, Integer amount, ExperimentType ep) {
-		return executeWithLock(id, ep, () -> worker.withdrawTx(id, amount));
+		return executeWithLock(id, ep, () -> worker.withdrawTx(id, amount), true);
 	}
 
 	@Override
 	public Integer deposit(Long id, Integer amount, ExperimentType ep) {
-		return executeWithLock(id, ep, () -> worker.depositTx(id, amount));
+		return executeWithLock(id, ep, () -> worker.depositTx(id, amount), true);
+	}
+
+	protected <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body, boolean isWrite) {
+		Strategy strategy = getStrategyType();
+		ReentrantReadWriteLock lock = locks.computeIfAbsent(id, k -> new ReentrantReadWriteLock());
+
+		long t0 = System.nanoTime();
+
+		if (isWrite) {
+			lock.writeLock().lock();
+		} else {
+			lock.readLock().lock();
+		}
+
+		try {
+			long waited = System.nanoTime() - t0;
+			metrics.recordWait(strategy, ep, waited);
+			return body.get();
+		} finally {
+			if (isWrite) {
+				lock.writeLock().unlock();
+			} else {
+				lock.readLock().unlock();
+			}
+		}
 	}
 
 	@Override
-	public Strategy getStrategyType() { return SYNCHRONIZED_REFACTOR; }
-
-	protected <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body) {
-		Strategy strategy = getStrategyType();
-		Object monitor = monitors.computeIfAbsent(id, k -> new Object());
-
-		long t0 = System.nanoTime();
-		synchronized (monitor) {
-			long waited = System.nanoTime() - t0;
-			metrics.recordWait(strategy, ep, waited);
-
-			MetricContext.set(strategy.name(), ep.name());
-			try {
-				return body.get();
-			} finally {
-				MetricContext.clear();
-			}
-		}
+	public Strategy getStrategyType() {
+		return REENTRANT_READ_WRITE_LOCK_REFACTOR;
 	}
 }

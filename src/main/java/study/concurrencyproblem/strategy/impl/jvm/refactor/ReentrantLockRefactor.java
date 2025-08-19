@@ -10,14 +10,33 @@ import org.springframework.stereotype.Component;
 
 import study.concurrencyproblem.experiment.ExperimentType;
 import study.concurrencyproblem.experiment.metrics.LockMetrics;
+import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
 
 @Component
-public class ReentrantLockRefactor extends AbstractLockStrategy {
+public class ReentrantLockRefactor implements LockStrategy {
 	private final ConcurrentHashMap<Long, ReentrantLock> locks = new ConcurrentHashMap<>();
+	protected final LockMetrics metrics;
+	protected final TxWorker worker;
 
 	public ReentrantLockRefactor(LockMetrics metrics, TxWorker worker) {
-		super(metrics, worker);
+		this.metrics = metrics;
+		this.worker = worker;
+	}
+
+	@Override
+	public Integer getBalance(Long id, ExperimentType ep) {
+		return executeWithLock(id, ep, () -> worker.getBalanceTx(id));
+	}
+
+	@Override
+	public Integer withdraw(Long id, Integer amount, ExperimentType ep) {
+		return executeWithLock(id, ep, () -> worker.withdrawTx(id, amount));
+	}
+
+	@Override
+	public Integer deposit(Long id, Integer amount, ExperimentType ep) {
+		return executeWithLock(id, ep, () -> worker.depositTx(id, amount));
 	}
 
 	@Override
