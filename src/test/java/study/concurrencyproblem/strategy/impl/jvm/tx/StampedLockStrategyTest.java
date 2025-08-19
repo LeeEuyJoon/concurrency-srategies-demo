@@ -1,4 +1,4 @@
-package study.concurrencyproblem.strategy.impl.jvm.refactor;
+package study.concurrencyproblem.strategy.impl.jvm.tx;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static study.concurrencyproblem.experiment.ExperimentType.*;
@@ -23,7 +23,7 @@ import study.concurrencyproblem.strategy.impl.jvm.NoLockStrategy;
 
 @SpringBootTest
 @Testcontainers
-class ReentrantLockRefactorTest {
+class StampedLockStrategyTest {
 	@Container
 	static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
 		.withDatabaseName("concurrency_test")
@@ -40,7 +40,7 @@ class ReentrantLockRefactorTest {
 	}
 
 	@Autowired
-	private ReentrantLockRefactor strategy;
+	private StampedLockStrategy strategy;
 	@Autowired
 	private NoLockStrategy noLockStrategy;
 

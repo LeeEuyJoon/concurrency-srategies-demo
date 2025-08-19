@@ -1,7 +1,6 @@
 package study.concurrencyproblem.strategy;
 
 public enum Strategy {
-    NO_USE,
     NO_LOCK,
     SYNCHRONIZED,
     SYNCHRONIZED_WITH_NO_TX,
@@ -12,5 +11,7 @@ public enum Strategy {
     REENTRANT_READ_WRITE_LOCK,
     REENTRANT_READ_WRITE_LOCK_WITH_NO_TX,
     REENTRANT_READ_WRITE_LOCK_REFACTOR,
-    STAMPED_LOCK
+    STAMPED_LOCK,
+    STAMPED_LOCK_WITH_NO_TX,
+    STAMPED_LOCK_REFACTOR
 }

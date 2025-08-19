@@ -14,12 +14,12 @@ import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
 
 @Component
-public class ReentrantLockRefactor implements LockStrategy {
+public class ReentrantLockStrategyRefactor implements LockStrategy {
 	private final ConcurrentHashMap<Long, ReentrantLock> locks = new ConcurrentHashMap<>();
 	protected final LockMetrics metrics;
 	protected final TxWorker worker;
 
-	public ReentrantLockRefactor(LockMetrics metrics, TxWorker worker) {
+	public ReentrantLockStrategyRefactor(LockMetrics metrics, TxWorker worker) {
 		this.metrics = metrics;
 		this.worker = worker;
 	}
