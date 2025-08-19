@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +70,6 @@ public class ReentrantLockStrategy implements LockStrategy {
 		lock.lock();
 		try {
 			long waited = System.nanoTime() - t0;
-
 			metrics.recordWait(strategy, experimentType, waited);
 			return criticalSection.get();
 		} finally {

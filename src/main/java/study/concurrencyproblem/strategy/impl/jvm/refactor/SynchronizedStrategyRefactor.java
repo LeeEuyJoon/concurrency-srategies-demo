@@ -1,4 +1,6 @@
-package study.concurrencyproblem.strategy.impl.jvm.tx_refactor;
+package study.concurrencyproblem.strategy.impl.jvm.refactor;
+
+import static study.concurrencyproblem.strategy.Strategy.*;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -12,35 +14,18 @@ import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
 
 @Component
-public class SynchronizedStrategyRefactor implements LockStrategy {
-	private final LockMetrics metrics;
-	private final SynchronizedTxWorker worker;
+public class SynchronizedStrategyRefactor extends AbstractLockStrategy {
 	private final ConcurrentHashMap<Long, Object> monitors = new ConcurrentHashMap<>();
 
-	public SynchronizedStrategyRefactor(LockMetrics metrics, SynchronizedTxWorker worker) {
-		this.metrics = metrics;
-		this.worker = worker;
+	public SynchronizedStrategyRefactor(LockMetrics metrics, TxWorker worker) {
+		super(metrics, worker);
 	}
 
 	@Override
-	public Integer getBalance(Long id, ExperimentType ep) {
-		return withMonitor(id, ep, () -> worker.getBalanceTx(id));
-	}
+	public Strategy getStrategyType() { return SYNCHRONIZED_REFACTOR; }
 
 	@Override
-	public Integer withdraw(Long id, Integer amount, ExperimentType ep) {
-		return withMonitor(id, ep, () -> worker.withdrawTx(id, amount));
-	}
-
-	@Override
-	public Integer deposit(Long id, Integer amount, ExperimentType ep) {
-		return withMonitor(id, ep, () -> worker.depositTx(id, amount));
-	}
-
-	@Override
-	public Strategy getStrategyType() { return Strategy.SYNCHRONIZED_REFACTOR; }
-
-	private <R> R withMonitor(Long id, ExperimentType ep, Supplier<R> body) {
+	protected <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body) {
 		Strategy strategy = getStrategyType();
 		Object monitor = monitors.computeIfAbsent(id, k -> new Object());
 

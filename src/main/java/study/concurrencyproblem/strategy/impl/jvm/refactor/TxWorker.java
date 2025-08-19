@@ -1,4 +1,4 @@
-package study.concurrencyproblem.strategy.impl.jvm.tx_refactor;
+package study.concurrencyproblem.strategy.impl.jvm.refactor;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,10 +7,10 @@ import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.repository.AccountRepository;
 
 @Component
-public class SynchronizedTxWorker {
+public class TxWorker {
 	private final AccountRepository accountRepository;
 
-	public SynchronizedTxWorker(AccountRepository accountRepository) {
+	public TxWorker(AccountRepository accountRepository) {
 		this.accountRepository = accountRepository;
 	}
 
