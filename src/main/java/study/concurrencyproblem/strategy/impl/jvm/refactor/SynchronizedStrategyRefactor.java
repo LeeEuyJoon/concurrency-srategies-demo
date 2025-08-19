@@ -43,7 +43,7 @@ public class SynchronizedStrategyRefactor implements LockStrategy {
 	@Override
 	public Strategy getStrategyType() { return SYNCHRONIZED_REFACTOR; }
 
-	protected <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body) {
+	private <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body) {
 		Strategy strategy = getStrategyType();
 		Object monitor = monitors.computeIfAbsent(id, k -> new Object());
 

@@ -44,7 +44,7 @@ public class ReentrantLockStrategyRefactor implements LockStrategy {
 		return REENTRANT_LOCK_REFACTOR;
 	}
 
-	protected <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body) {
+	private <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body) {
 		Strategy strategy = getStrategyType();
 		ReentrantLock lock = locks.computeIfAbsent(id, k -> new ReentrantLock());
 

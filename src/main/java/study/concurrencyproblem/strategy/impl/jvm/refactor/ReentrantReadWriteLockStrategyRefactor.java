@@ -40,7 +40,7 @@ public class ReentrantReadWriteLockStrategyRefactor implements LockStrategy {
 		return executeWithLock(id, ep, () -> worker.depositTx(id, amount), true);
 	}
 
-	protected <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body, boolean isWrite) {
+	private <R> R executeWithLock(Long id, ExperimentType ep, Supplier<R> body, boolean isWrite) {
 		Strategy strategy = getStrategyType();
 		ReentrantReadWriteLock lock = locks.computeIfAbsent(id, k -> new ReentrantReadWriteLock());
 

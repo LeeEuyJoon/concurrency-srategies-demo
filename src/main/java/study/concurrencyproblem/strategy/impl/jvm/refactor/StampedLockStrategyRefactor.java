@@ -44,8 +44,8 @@ public class StampedLockStrategyRefactor implements LockStrategy {
 		return STAMPED_LOCK_REFACTOR;
 	}
 
-	private Integer executeWithLock(Long id, ExperimentType experimentType
-		, Supplier<Integer> criticalSection, boolean isWrite) {
+	private <R> R executeWithLock(Long id, ExperimentType experimentType
+		, Supplier<R> criticalSection, boolean isWrite) {
 		Strategy strategy = getStrategyType();
 		StampedLock lock = locks.computeIfAbsent(id, k -> new StampedLock());
 
@@ -63,7 +63,7 @@ public class StampedLockStrategyRefactor implements LockStrategy {
 			}
 		} else {
 			long stamp = lock.tryOptimisticRead();
-			Integer result = criticalSection.get();
+			R result = criticalSection.get();
 
 			if (!lock.validate(stamp)) {
 				stamp = lock.readLock();
