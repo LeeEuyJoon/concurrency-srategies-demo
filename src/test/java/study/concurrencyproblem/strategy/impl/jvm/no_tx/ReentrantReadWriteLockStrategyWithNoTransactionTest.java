@@ -72,7 +72,7 @@ class ReentrantReadWriteLockStrategyWithNoTransactionTest {
 	}
 
 	@Test
-	@DisplayName("Race Condition - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
+	@DisplayName("Reentrant-R-R No Tx - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
 	void twoThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
 		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
@@ -123,7 +123,7 @@ class ReentrantReadWriteLockStrategyWithNoTransactionTest {
 	}
 
 	@Test
-	@DisplayName("Race Condition - 잔고가 100,000원인 계좌에서 50개의 스레드가 동시에 1,00원씩 인출")
+	@DisplayName("Reentrant-R-R No Tx - 잔고가 100,000원인 계좌에서 50개의 스레드가 동시에 1,00원씩 인출")
 	void oneHundredThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
 		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);

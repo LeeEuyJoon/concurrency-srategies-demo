@@ -56,7 +56,7 @@ class SynchronizedStrategyWithNoTransactionTest {
 	}
 
 	@Test
-	@DisplayName("단일 스레드 출금 테스트 - 정상 동작")
+	@DisplayName("Synchronized No Tx - 정상 동작")
 	void singleThreadWithdrawTest() {
 		// Given
 		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
@@ -72,7 +72,7 @@ class SynchronizedStrategyWithNoTransactionTest {
 	}
 
 	@Test
-	@DisplayName("Race Condition - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
+	@DisplayName("Synchronized No Tx - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
 	void twoThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
 		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);

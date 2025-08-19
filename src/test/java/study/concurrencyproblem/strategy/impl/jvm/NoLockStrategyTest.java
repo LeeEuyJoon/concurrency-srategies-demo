@@ -70,7 +70,7 @@ class NoLockStrategyTest {
 	}
 
 	@Test
-	@DisplayName("Race Condition - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
+	@DisplayName("No Lock - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
 	void twoThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
 		int initialBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
@@ -120,7 +120,7 @@ class NoLockStrategyTest {
 	}
 
 	@Test
-	@DisplayName("Race Condition - 잔고가 100,000원인 계좌에서 50개의 스레드가 동시에 1,00원씩 인출")
+	@DisplayName("No Lock - 잔고가 100,000원인 계좌에서 50개의 스레드가 동시에 1,00원씩 인출")
 	void oneHundredThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
 		int initialBalance = noLockStrategy.getBalance(testAccountId, WITHDRAW_ONLY);
