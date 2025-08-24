@@ -3,11 +3,13 @@ package study.concurrencyproblem.repository;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import jakarta.persistence.LockModeType;
 import study.concurrencyproblem.domain.Account;
 
 @Repository
@@ -28,4 +30,11 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 	// 잔액 조회
 	@Query("SELECT a.balance FROM Account a WHERE a.id = :id")
 	Optional<Integer> getBalance(@Param("id") Long id);
+
+	// 조회 - Pessimistic Lock
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("SELECT a FROM Account a WHERE a.id = :id")
+	Optional<Account> findByIdWithPessimisticLock(@Param("id") Long id);
+
+
 } 
