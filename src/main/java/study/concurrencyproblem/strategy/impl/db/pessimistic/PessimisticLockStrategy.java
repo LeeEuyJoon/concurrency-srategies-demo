@@ -1,4 +1,4 @@
-package study.concurrencyproblem.strategy.impl.db;
+package study.concurrencyproblem.strategy.impl.db.pessimistic;
 
 import static study.concurrencyproblem.strategy.Strategy.*;
 
@@ -35,18 +35,18 @@ public class PessimisticLockStrategy implements LockStrategy {
 	@Override
 	@Transactional
 	public Integer withdraw(Long id, Integer amount, ExperimentType ep) {
-		return withLockedAccount(id, ep, a -> {
-			a.setBalance(a.getBalance() - amount);
-			return a.getBalance();
+		return withLockedAccount(id, ep, account -> {
+			account.setBalance(account.getBalance() - amount);
+			return account.getBalance();
 		});
 	}
 
 	@Override
 	@Transactional
 	public Integer deposit(Long id, Integer amount, ExperimentType ep) {
-		return withLockedAccount(id, ep, a -> {
-			a.setBalance(a.getBalance() + amount);
-			return a.getBalance();
+		return withLockedAccount(id, ep, account -> {
+			account.setBalance(account.getBalance() + amount);
+			return account.getBalance();
 		});
 	}
 
@@ -54,12 +54,12 @@ public class PessimisticLockStrategy implements LockStrategy {
 	public Strategy getStrategyType() { return DB_PESSIMISTIC; }
 
 	private Integer withLockedAccount(Long id, ExperimentType ep, Function<Account, Integer> body) {
-		MetricContext.set(DB_PESSIMISTIC.name(), ep.name());
+		MetricContext.set(getStrategyType().name(), ep.name());
 		try {
 			long t0 = System.nanoTime();
-			Account a = accountRepository.findByIdWithPessimisticLock(id).orElseThrow();
-			metrics.recordWait(DB_PESSIMISTIC, ep, System.nanoTime() - t0);
-			return body.apply(a);
+			Account account = accountRepository.findByIdWithPessimisticLock(id).orElseThrow();
+			metrics.recordWait(getStrategyType(), ep, System.nanoTime() - t0);
+			return body.apply(account);
 		} finally {
 			MetricContext.clear();
 		}

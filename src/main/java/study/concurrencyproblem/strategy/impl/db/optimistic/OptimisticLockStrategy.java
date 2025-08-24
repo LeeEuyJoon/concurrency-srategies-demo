@@ -1,0 +1,77 @@
+package study.concurrencyproblem.strategy.impl.db.optimistic;
+
+import static study.concurrencyproblem.strategy.Strategy.DB_OPTIMISTIC;
+
+import java.util.function.Supplier;
+
+import org.springframework.stereotype.Component;
+
+import jakarta.persistence.OptimisticLockException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+
+import study.concurrencyproblem.experiment.ExperimentType;
+import study.concurrencyproblem.experiment.metrics.LockMetrics;
+import study.concurrencyproblem.experiment.metrics.MetricContext;
+import study.concurrencyproblem.strategy.LockStrategy;
+import study.concurrencyproblem.strategy.Strategy;
+
+@Component
+public class OptimisticLockStrategy implements LockStrategy {
+
+	private static final int MAX_RETRY = 30;
+	private static final long RETRY_TERM = 10;
+
+	private final LockMetrics metrics;
+	private final OptimisticTxWorker worker;
+
+	public OptimisticLockStrategy(LockMetrics metrics, OptimisticTxWorker worker) {
+		this.metrics = metrics;
+		this.worker = worker;
+	}
+
+	@Override
+	public Integer getBalance(Long id, ExperimentType ep) {
+		MetricContext.set(DB_OPTIMISTIC.name(), ep.name());
+		try {
+			metrics.recordWait(DB_OPTIMISTIC, ep, 0L);
+			return worker.getBalance(id);
+		} finally {
+			MetricContext.clear();
+		}
+	}
+
+	@Override
+	public Integer withdraw(Long id, Integer amount, ExperimentType ep) {
+		return runWithRetry(ep, () -> worker.withdrawOnce(id, amount));
+	}
+
+	@Override
+	public Integer deposit(Long id, Integer amount, ExperimentType ep) {
+		return runWithRetry(ep, () -> worker.depositOnce(id, amount));
+	}
+
+	@Override public Strategy getStrategyType() { return DB_OPTIMISTIC; }
+
+	private Integer runWithRetry(ExperimentType ep, Supplier<Integer> attempt) {
+		MetricContext.set(DB_OPTIMISTIC.name(), ep.name());
+		try {
+			metrics.recordWait(DB_OPTIMISTIC, ep, 0L);
+			int tries = 0;
+			while (true) {
+				try {
+					return attempt.get();
+				} catch (OptimisticLockException | ObjectOptimisticLockingFailureException e) {
+					if (++tries > MAX_RETRY) throw e;
+					try {
+						Thread.sleep(RETRY_TERM);
+					} catch (InterruptedException ie) {
+						Thread.currentThread().interrupt();
+						throw new RuntimeException(ie);
+					}
+				}
+			}
+		} finally {
+			MetricContext.clear();
+		}
+	}
+}

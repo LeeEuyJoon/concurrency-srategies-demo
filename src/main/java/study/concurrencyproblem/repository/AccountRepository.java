@@ -20,12 +20,12 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 	// 예금
 	@Modifying
 	@Query("UPDATE Account a SET a.balance = a.balance + :amount WHERE a.id = :id")
-	Integer deposit(@Param("id") Integer id, @Param("amount") Integer amount);
+	Integer deposit(@Param("id") Long id, @Param("amount") Integer amount);
 
 	// 출금
 	@Modifying
 	@Query("UPDATE Account a SET a.balance = a.balance - :amount WHERE a.id = :id")
-	Integer withdraw(@Param("id") Integer id, @Param("amount") Integer amount);
+	Integer withdraw(@Param("id") Long id, @Param("amount") Integer amount);
 
 	// 잔액 조회
 	@Query("SELECT a.balance FROM Account a WHERE a.id = :id")
@@ -36,5 +36,9 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 	@Query("SELECT a FROM Account a WHERE a.id = :id")
 	Optional<Account> findByIdWithPessimisticLock(@Param("id") Long id);
 
+	// 조회 - Optimistic Lock
+	@Lock(LockModeType.OPTIMISTIC)
+	@Query("SELECT a FROM Account a WHERE a.id = :id")
+	Optional<Account> findByIdWithOptimisticLock(@Param("id") Long id);
 
 } 

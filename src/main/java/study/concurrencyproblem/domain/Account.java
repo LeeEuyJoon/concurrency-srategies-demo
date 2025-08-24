@@ -14,6 +14,9 @@ public class Account {
     @Column(name = "balance", nullable = false)
     private Integer balance = 0;
 
+    @Version
+    private Long version;
+
     public Account() {}
 
     public Account(Integer balance) {

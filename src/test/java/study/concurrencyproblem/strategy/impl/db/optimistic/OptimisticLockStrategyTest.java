@@ -1,4 +1,4 @@
-package study.concurrencyproblem.strategy.impl.db;
+package study.concurrencyproblem.strategy.impl.db.optimistic;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static study.concurrencyproblem.experiment.ExperimentType.*;
@@ -23,7 +23,7 @@ import study.concurrencyproblem.strategy.impl.jvm.NoLockStrategy;
 
 @SpringBootTest
 @Testcontainers
-class PessimisticLockStrategyTest {
+class OptimisticLockStrategyTest {
 	@Container
 	static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
 		.withDatabaseName("concurrency_test")
@@ -40,7 +40,7 @@ class PessimisticLockStrategyTest {
 	}
 
 	@Autowired
-	private PessimisticLockStrategy strategy;
+	private OptimisticLockStrategy strategy;
 	@Autowired
 	private NoLockStrategy noLockStrategy;
 
@@ -72,7 +72,7 @@ class PessimisticLockStrategyTest {
 	}
 
 	@Test
-	@DisplayName("MySQL Pessimistic Lock - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
+	@DisplayName("MySQL Optimistic Lock - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
 	void twoThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
 		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
@@ -125,7 +125,7 @@ class PessimisticLockStrategyTest {
 	}
 
 	@Test
-	@DisplayName("MySQL Pessimistic Lock - 잔고가 100,000원인 계좌에서 50개의 스레드가 동시에 1,00원씩 인출")
+	@DisplayName("MySQL Optimistic Lock - 잔고가 100,000원인 계좌에서 50개의 스레드가 동시에 1,00원씩 인출")
 	void oneHundredThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
 		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
