@@ -14,6 +14,7 @@ import study.concurrencyproblem.experiment.metrics.LockMetrics;
 import study.concurrencyproblem.experiment.metrics.MetricContext;
 import study.concurrencyproblem.strategy.LockStrategy;
 import study.concurrencyproblem.strategy.Strategy;
+import study.concurrencyproblem.strategy.impl.DbTxWorker;
 
 @Component
 public class OptimisticLockStrategy implements LockStrategy {
@@ -22,9 +23,9 @@ public class OptimisticLockStrategy implements LockStrategy {
 	private static final long RETRY_TERM = 10;
 
 	private final LockMetrics metrics;
-	private final OptimisticTxWorker worker;
+	private final DbTxWorker worker;
 
-	public OptimisticLockStrategy(LockMetrics metrics, OptimisticTxWorker worker) {
+	public OptimisticLockStrategy(LockMetrics metrics, DbTxWorker worker) {
 		this.metrics = metrics;
 		this.worker = worker;
 	}
@@ -53,9 +54,9 @@ public class OptimisticLockStrategy implements LockStrategy {
 	@Override public Strategy getStrategyType() { return DB_OPTIMISTIC; }
 
 	private Integer runWithRetry(ExperimentType ep, Supplier<Integer> attempt) {
-		MetricContext.set(DB_OPTIMISTIC.name(), ep.name());
+		MetricContext.set(getStrategyType().name(), ep.name());
 		try {
-			metrics.recordWait(DB_OPTIMISTIC, ep, 0L);
+			metrics.recordWait(getStrategyType(), ep, 0L);
 			int tries = 0;
 			while (true) {
 				try {

@@ -1,4 +1,4 @@
-package study.concurrencyproblem.strategy.impl.db.named;
+package study.concurrencyproblem.strategy.impl.redis;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static study.concurrencyproblem.experiment.ExperimentType.*;
@@ -18,12 +18,17 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.redis.testcontainers.RedisContainer;
+
 import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.strategy.impl.jvm.NoLockStrategy;
 
 @SpringBootTest
 @Testcontainers
-class NamedLockStrategyRefactorTest {
+class LettuceStrategyTest {
+	@Container
+	static RedisContainer redis = new RedisContainer("redis:7.2-alpine");
+
 	@Container
 	static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
 		.withDatabaseName("concurrency_test")
@@ -39,8 +44,14 @@ class NamedLockStrategyRefactorTest {
 		registry.add("spring.jpa.show-sql", () -> false);
 	}
 
+	@DynamicPropertySource
+	static void redisProps(DynamicPropertyRegistry registry) {
+		registry.add("spring.data.redis.host", redis::getHost);
+		registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+	}
+
 	@Autowired
-	private NamedLockStrategyRefactor strategy;
+	private LettuceStrategy strategy;
 	@Autowired
 	private NoLockStrategy noLockStrategy;
 
@@ -72,7 +83,7 @@ class NamedLockStrategyRefactorTest {
 	}
 
 	@Test
-	@DisplayName("MySQL Named Lock - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
+	@DisplayName("MySQL Pessimistic Lock - 잔고가 100,000원인 계좌에서 두 스레드가 동시에 50,000원을 인출")
 	void twoThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
 		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);
@@ -125,7 +136,7 @@ class NamedLockStrategyRefactorTest {
 	}
 
 	@Test
-	@DisplayName("MySQL Named Lock - 잔고가 100,000원인 계좌에서 50개의 스레드가 동시에 1,00원씩 인출")
+	@DisplayName("MySQL Pessimistic Lock - 잔고가 100,000원인 계좌에서 50개의 스레드가 동시에 1,00원씩 인출")
 	void oneHundredThreadWithdraw() throws InterruptedException {
 		// [ Given: 초기 잔액 100,000원 ]
 		int initialBalance = strategy.getBalance(testAccountId, WITHDRAW_ONLY);

@@ -22,6 +22,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation "org.springframework.boot:spring-boot-starter-aop"
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly   'io.micrometer:micrometer-registry-prometheus'
@@ -30,6 +31,9 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+//    testImplementation "org.testcontainers:redis:1.21.3"
+    testImplementation "com.redis:testcontainers-redis:2.2.4"
+    testImplementation "org.springframework.boot:spring-boot-starter-data-redis"
 }
 
 tasks.named('test') {

@@ -1,4 +1,4 @@
-package study.concurrencyproblem.strategy.impl.db.optimistic;
+package study.concurrencyproblem.strategy.impl;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -6,11 +6,11 @@ import study.concurrencyproblem.domain.Account;
 import study.concurrencyproblem.repository.AccountRepository;
 
 @Component
-public class OptimisticTxWorker {
+public class DbTxWorker {
 
 	private final AccountRepository accountRepository;
 
-	public OptimisticTxWorker(AccountRepository accountRepository) {
+	public DbTxWorker(AccountRepository accountRepository) {
 		this.accountRepository = accountRepository;
 	}
 

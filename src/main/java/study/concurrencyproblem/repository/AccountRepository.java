@@ -41,4 +41,12 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 	@Query("SELECT a FROM Account a WHERE a.id = :id")
 	Optional<Account> findByIdWithOptimisticLock(@Param("id") Long id);
 
+	// 락 획득 - Named Lock (성공=1, 타임아웃=0, 오류=NULL)
+	@Query(value = "SELECT GET_LOCK(:key, :timeoutSec)", nativeQuery = true)
+	Integer getLock(@Param("key") String key, @Param("timeoutSec") int timeoutSec);
+
+	// 락 해제 - Named Lock (성공=1, 내가 주인 아님=0, 없음=NULL)
+	@Query(value = "SELECT RELEASE_LOCK(:key)", nativeQuery = true)
+	Integer releaseLock(@Param("key") String key);
+
 } 
