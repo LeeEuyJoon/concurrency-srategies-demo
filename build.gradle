@@ -23,10 +23,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation "org.springframework.boot:spring-boot-starter-aop"
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+//    https://mvnrepository.com/artifact/org.redisson/redisson-spring-boot-starter
+    implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly   'io.micrometer:micrometer-registry-prometheus'
-    
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
@@ -34,6 +36,7 @@ dependencies {
 //    testImplementation "org.testcontainers:redis:1.21.3"
     testImplementation "com.redis:testcontainers-redis:2.2.4"
     testImplementation "org.springframework.boot:spring-boot-starter-data-redis"
+
 }
 
 tasks.named('test') {

@@ -25,7 +25,7 @@ import study.concurrencyproblem.strategy.impl.jvm.NoLockStrategy;
 
 @SpringBootTest
 @Testcontainers
-class LettuceStrategyTest {
+class RedissonStrategyTest {
 	@Container
 	static RedisContainer redis = new RedisContainer("redis:7.2-alpine");
 
@@ -51,7 +51,7 @@ class LettuceStrategyTest {
 	}
 
 	@Autowired
-	private LettuceStrategy strategy;
+	private RedissonStrategy strategy;
 	@Autowired
 	private NoLockStrategy noLockStrategy;
 
