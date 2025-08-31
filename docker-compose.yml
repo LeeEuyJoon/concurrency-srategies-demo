@@ -23,12 +23,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL:      jdbc:mysql://db:3306/concurrency_test
       SPRING_DATASOURCE_USERNAME: test_user
       SPRING_DATASOURCE_PASSWORD: test_password
-      # 락 전략별 프로파일: app-lock, db-lock, redis-lock 중 하나
-      SPRING_PROFILES_ACTIVE:     app-lock
+      # Redis 연결 설정
+      SPRING_DATA_REDIS_HOST:     redis
+      SPRING_DATA_REDIS_PORT:     6379
     ports:
       - '8080'
 
@@ -66,3 +69,19 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
+
+  # Redis for distributed locks
+  redis:
+    image: redis:7-alpine
+    container_name: concurrency-redis
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server 
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
