@@ -61,14 +61,22 @@ public class LettuceStrategy implements LockStrategy {
 		String token	= UUID.randomUUID().toString();
 
 		long t0 = System.nanoTime();
+		int retryCount = 0;
 		try {
 			long deadline = System.currentTimeMillis() + MAX_WAIT_MS;
 			while (true) {
-				if (lockRepository.tryLock(key, token, LEASE_TTL))
+				if (lockRepository.tryLock(key, token, LEASE_TTL)) {
+					// 락 획득 성공
+					metrics.recordWait(getStrategyType(), ep, System.nanoTime() - t0);
+					metrics.recordRetry(getStrategyType(), ep, retryCount);
 					break;
+				}
+				
+				retryCount++;
 				if (System.currentTimeMillis() > deadline) {
 					metrics.recordWait(getStrategyType(), ep, System.nanoTime() - t0);
-					throw new RuntimeException();
+					metrics.recordRetry(getStrategyType(), ep, retryCount);
+					throw new RuntimeException("Redis lock timeout after " + retryCount + " retries");
 				}
 				try {
 					Thread.sleep(BACKOFF_MS);
@@ -77,8 +85,6 @@ public class LettuceStrategy implements LockStrategy {
 					throw new RuntimeException(ie);
 				}
 			}
-
-			metrics.recordWait(getStrategyType(), ep, System.nanoTime() - t0);
 
 			return action.get();
 		} finally {

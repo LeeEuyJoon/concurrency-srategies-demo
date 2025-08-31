@@ -1,6 +1,6 @@
 {
   "uid": "concurrency-lock-wait",
-  "title": "Concurrency • Lock Wait",
+  "title": "Concurrency • Lock Wait & Retry",
   "timezone": "browser",
   "schemaVersion": 38,
   "version": 1,
@@ -9,7 +9,7 @@
     {
       "type": "timeseries",
       "title": "Average lock wait (by strategy, ep)",
-      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
       "targets": [
         {
           "refId": "A",
@@ -22,8 +22,22 @@
     },
     {
       "type": "timeseries",
+      "title": "Average retry count (by strategy, ep)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(concurrency_retry_total{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[1m]) / clamp_min(rate(concurrency_lock_wait_seconds_count{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[1m]), 1)",
+          "legendFormat": "{{strategy}} · {{ep}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 1 }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
       "title": "p90 lock wait (by strategy, ep)",
-      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
       "targets": [
         {
           "refId": "A",
@@ -36,8 +50,22 @@
     },
     {
       "type": "timeseries",
+      "title": "p90 retry count (by strategy, ep)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.90, sum(rate(concurrency_retry_distribution_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[1m])) by (le, strategy, ep))",
+          "legendFormat": "{{strategy}} · {{ep}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0 }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
       "title": "p99 lock wait (by strategy, ep)",
-      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
       "targets": [
         {
           "refId": "A",
@@ -47,19 +75,32 @@
         }
       ],
       "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
-    }
-    ,
+    },
+    {
+      "type": "timeseries",
+      "title": "Total retry rate (ops/sec)",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (strategy, ep) (rate(concurrency_retry_total{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[1m]))",
+          "legendFormat": "{{strategy}} · {{ep}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
+    },
     {
       "type": "stat",
       "title": "AVG lock wait (range; by strategy, ep)",
-      "gridPos": { "x": 0, "y": 24, "w": 8, "h": 6 },
+      "gridPos": { "x": 0, "y": 24, "w": 6, "h": 6 },
       "targets": [
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "(sum by (strategy, ep) (increase(concurrency_lock_wait_seconds_sum{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))/(clamp_min(sum by (strategy, ep) (increase(concurrency_lock_wait_seconds_count{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])),1))",
-          "legendFormat": "{{strategy}} · {{ep}}"
-          ,"instant": true
+          "legendFormat": "{{strategy}} · {{ep}}",
+          "instant": true
         }
       ],
       "options": {
@@ -74,29 +115,52 @@
       "fieldConfig": { 
         "defaults": { 
           "unit": "s", 
-          "decimals": 3,
-          "custom": {
-            "legend": {
-              "sortBy": "Name",
-              "sortDesc": false
-            }
-          }
+          "decimals": 3
         }, 
         "overrides": [] 
       }
-    }
-    ,
+    },
+    {
+      "type": "stat",
+      "title": "AVG retry count (range; by strategy, ep)",
+      "gridPos": { "x": 6, "y": 24, "w": 6, "h": 6 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "(sum by (strategy, ep) (increase(concurrency_retry_total{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))/(clamp_min(sum by (strategy, ep) (increase(concurrency_lock_wait_seconds_count{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])),1))",
+          "legendFormat": "{{strategy}} · {{ep}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "Value", "values": true },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "transformations": [ { "id": "seriesToRows", "options": {} } ],
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "short", 
+          "decimals": 1
+        }, 
+        "overrides": [] 
+      }
+    },
     {
       "type": "stat",
       "title": "p90 lock wait (range; by strategy, ep)",
-      "gridPos": { "x": 8, "y": 24, "w": 8, "h": 6 },
+      "gridPos": { "x": 12, "y": 24, "w": 6, "h": 6 },
       "targets": [
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "histogram_quantile(0.90, sum by (le, strategy, ep) (increase(concurrency_lock_wait_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))",
-          "legendFormat": "{{strategy}} · {{ep}}"
-          ,"instant": true
+          "legendFormat": "{{strategy}} · {{ep}}",
+          "instant": true
         }
       ],
       "options": {
@@ -111,29 +175,22 @@
       "fieldConfig": { 
         "defaults": { 
           "unit": "s", 
-          "decimals": 3,
-          "custom": {
-            "legend": {
-              "sortBy": "Name",
-              "sortDesc": false
-            }
-          }
+          "decimals": 3
         }, 
         "overrides": [] 
       }
-    }
-    ,
+    },
     {
       "type": "stat",
-      "title": "p99 lock wait (range; by strategy, ep)",
-      "gridPos": { "x": 16, "y": 24, "w": 8, "h": 6 },
+      "title": "p90 retry count (range; by strategy, ep)",
+      "gridPos": { "x": 18, "y": 24, "w": 6, "h": 6 },
       "targets": [
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.99, sum by (le, strategy, ep) (increase(concurrency_lock_wait_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))",
-          "legendFormat": "{{strategy}} · {{ep}}"
-          ,"instant": true
+          "expr": "histogram_quantile(0.90, sum by (le, strategy, ep) (increase(concurrency_retry_distribution_seconds_bucket{strategy!=\"UNKNOWN\",ep!=\"UNKNOWN\"}[$__range])))",
+          "legendFormat": "{{strategy}} · {{ep}}",
+          "instant": true
         }
       ],
       "options": {
@@ -147,19 +204,12 @@
       "transformations": [ { "id": "seriesToRows", "options": {} } ],
       "fieldConfig": { 
         "defaults": { 
-          "unit": "s", 
-          "decimals": 3,
-          "custom": {
-            "legend": {
-              "sortBy": "Name",
-              "sortDesc": false
-            }
-          }
+          "unit": "short", 
+          "decimals": 0
         }, 
         "overrides": [] 
       }
-    }
-    ,
+    },
     {
       "type": "stat",
       "title": "AVG tx duration (ms; range; by strategy, ep)",
@@ -185,18 +235,11 @@
       "fieldConfig": { 
         "defaults": { 
           "unit": "ms", 
-          "decimals": 2,
-          "custom": {
-            "legend": {
-              "sortBy": "Name",
-              "sortDesc": false
-            }
-          }
+          "decimals": 2
         }, 
         "overrides": [] 
       }
-    }
-    ,
+    },
     {
       "type": "stat",
       "title": "p90 tx duration (ms; range; by strategy, ep)",
@@ -222,18 +265,11 @@
       "fieldConfig": { 
         "defaults": { 
           "unit": "ms", 
-          "decimals": 2,
-          "custom": {
-            "legend": {
-              "sortBy": "Name",
-              "sortDesc": false
-            }
-          }
+          "decimals": 2
         }, 
         "overrides": [] 
       }
-    }
-    ,
+    },
     {
       "type": "stat",
       "title": "p99 tx duration (ms; range; by strategy, ep)",
@@ -259,17 +295,10 @@
       "fieldConfig": { 
         "defaults": { 
           "unit": "ms", 
-          "decimals": 2,
-          "custom": {
-            "legend": {
-              "sortBy": "Name",
-              "sortDesc": false
-            }
-          }
+          "decimals": 2
         }, 
         "overrides": [] 
       }
     }
-    
   ]
 }

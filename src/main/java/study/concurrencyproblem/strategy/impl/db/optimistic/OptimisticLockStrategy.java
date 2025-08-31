@@ -60,9 +60,15 @@ public class OptimisticLockStrategy implements LockStrategy {
 			int tries = 0;
 			while (true) {
 				try {
-					return attempt.get();
+					Integer result = attempt.get();
+					metrics.recordRetry(getStrategyType(), ep, tries);
+					return result;
 				} catch (OptimisticLockException | ObjectOptimisticLockingFailureException e) {
-					if (++tries > MAX_RETRY) throw e;
+					tries++;
+					if (tries > MAX_RETRY) {
+						metrics.recordRetry(getStrategyType(), ep, tries);
+						throw e;
+					}
 					try {
 						Thread.sleep(RETRY_TERM);
 					} catch (InterruptedException ie) {
