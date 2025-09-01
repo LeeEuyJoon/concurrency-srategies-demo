@@ -124,7 +124,7 @@ JVM/MySQL/Redis 기반의 다양한 락 전략 적용<br>
 
 <br>
 
-### 관련 작성글
+### 관련 작성 글
 
 - [전략 패턴 적용기 + 스프링에서 List로 빈 주입하기](https://luti-dev.tistory.com/16)  
 - [@Transactional 메서드에서는 Synchronized 동기화가 통하지 않는다?!?!?](https://luti-dev.tistory.com/17)  
