@@ -47,12 +47,12 @@ JVM/DB/Redis 기반의 다양한 락 전략 적용<br>
 <br>
 
 ### 기술 스택
-Backend: Spring Boot 3.5.4, Java 17<br>
-Database: MySQL 8.0<br>
-Cache/Lock: Redis 7-alpine<br>
-Monitoring: Micrometer + Prometheus + Grafana<br>
-Load Testing: Apache JMeter<br>
-Containerization: Docker Compose
+**Backend**: Spring Boot 3.5.4, Java 17<br>
+**Database, Lock**: MySQL 8.0<br>
+**Lock**: Redis 7-alpine<br>
+**Monitoring**: Micrometer + Prometheus + Grafana<br>
+**Testing**: Apache JMeter<br>
+**Containerization**: Docker Compose
 
 <br>
 
